@@ -117,7 +117,7 @@ app.delete('/api/article/delete/:id',async function (req, res) {
         WHERE id = $1
     `, [id]);
     await client.query('COMMIT');
-    res.status(200).json({ message:'success', data: newData });
+    res.status(200).json({ message:'success' });
   } catch (error) {
     console.log(error);
     await client.query('ROLLBACK');
