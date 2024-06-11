@@ -64,8 +64,19 @@ app.post('/api/article/create', async function (req, res) {
 });
 // 4. UPDATE ARTICLE API
 app.put('/api/article/update/:id', async function (req, res) {
-  await client.query('BEGIN');
   try {
+    // validasi input user
+    const schema = Joi.object({
+      title: Joi.string().required(),
+      body: Joi.string().required()
+    })
+    const validation = schema.validate(req.body, { abortEarly: false });
+    if(validation.error) {
+      console.log(validation.error);
+      return res.status(400).json({ message: 'bad request', error: validation.error.details.map(x => x.message) })
+    }
+
+    await client.query('BEGIN');
     const payload = req.body;
     const id = req.params.id;
 
@@ -88,11 +99,11 @@ app.put('/api/article/update/:id', async function (req, res) {
     const newData = newRawData.rows[0];
 
     await client.query('COMMIT');
-    res.redirect('/api/article/detail/' + id);
+    res.status(200).json({ message:'success', data: newData });
   } catch (error) {
     console.log(error);
     await client.query('ROLLBACK');
-    res.status(500).send('internal server error');
+    res.status(500).send({ message: 'internal server error' });
   }
 });
 
@@ -106,11 +117,11 @@ app.delete('/api/article/delete/:id',async function (req, res) {
         WHERE id = $1
     `, [id]);
     await client.query('COMMIT');
-    res.redirect('/api/article')
+    res.status(200).json({ message:'success', data: newData });
   } catch (error) {
     console.log(error);
     await client.query('ROLLBACK');
-    res.status(500).send('internal server error');
+    res.status(500).send({ message: 'internal server error' });
   }
 })
 
